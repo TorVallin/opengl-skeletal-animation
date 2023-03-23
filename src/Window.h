@@ -79,6 +79,12 @@ class Window {
 	shader.setMat4("model", model_matrix);
 	shader.setMat4("view", view_matrix);
 
+	Shader skel_shader = Shader("../shaders/skeletal_animation.vert", "../shaders/basic.frag");
+	skel_shader.use();
+	skel_shader.setMat4("projection", projection_matrix);
+	skel_shader.setMat4("model", model_matrix);
+	skel_shader.setMat4("view", view_matrix);
+
 	Grid grid{};
 
 	std::optional<Model> character_model_opt = ModelLoader::loadModel("../assets/Pushing.fbx");

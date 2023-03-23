@@ -75,7 +75,7 @@ class ModelLoader {
 
   [[nodiscard]] static Mesh load_mesh(const aiScene *, const aiMesh *mesh) {
 	std::vector<Vertex> all_vertices;
-	std::vector<unsigned int> allIndices;
+	std::vector<unsigned int> all_indices;
 
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
 	  Vertex vert{};
@@ -86,20 +86,20 @@ class ModelLoader {
 
 	for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
 	  for (unsigned int j = 0; j < mesh->mFaces[i].mNumIndices; j++) {
-		allIndices.push_back(mesh->mFaces[i].mIndices[j]);
+		all_indices.push_back(mesh->mFaces[i].mIndices[j]);
 	  }
 	}
 
 	Mesh result;
 	result.vertices = all_vertices;
-	result.indices = allIndices;
+	result.indices = all_indices;
 
 	create_mesh(result);
 
 	return result;
   }
 
-  [[nodiscard]] static std::string getBasePath(const std::string &path) {
+  [[nodiscard]] static std::string get_base_path(const std::string &path) {
 	size_t pos = path.find_last_of("\\/");
 	return (std::string::npos == pos) ? "" : path.substr(0, pos + 1);
   }

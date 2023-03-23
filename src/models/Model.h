@@ -9,10 +9,25 @@
 #include <glm/gtx/quaternion.hpp>
 #include <vector>
 
+static const int MAX_BONE_PER_VERTEX = 4;
+
 struct Vertex {
   glm::vec3 pos;    // m_position
 //  glm::vec3 normal; // vertex normal
 //  glm::vec2 tex;    // 2D texture coordinates, these are given in obj files.
+};
+
+// TODO: add vertex weights as well
+// 		bone_ids is the ID of the bones that affect this vertex's position
+struct AnimatedVertex {
+  AnimatedVertex() {
+	for (int &bone_id : bone_ids) {
+	  bone_id = -1;
+	}
+  }
+
+  glm::vec3 pos{};
+  int bone_ids[MAX_BONE_PER_VERTEX]{};
 };
 
 struct Mesh {
