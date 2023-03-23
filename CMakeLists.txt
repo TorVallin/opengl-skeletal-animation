@@ -11,7 +11,7 @@ SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_P
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 # Define the executable
-add_executable(${PROJECT_NAME} src/main.cpp src/Window.cpp src/Window.h src/shader/Shader.cpp src/shader/Shader.h src/shapes/Grid.h)
+add_executable(${PROJECT_NAME} src/main.cpp src/Window.cpp src/Window.h src/shader/Shader.cpp src/shader/Shader.h src/shapes/Grid.h src/models/Model.h src/models/ModelLoader.h src/models/Mesh.h src/renderer/Renderer.cpp src/renderer/Renderer.h)
 
 find_package(OpenGL REQUIRED)
 
@@ -24,8 +24,12 @@ find_package(GLFW3 REQUIRED)
 # glad
 add_library(glad "dependencies/glad/src/glad.c")
 
+# assimp
+find_package(assimp REQUIRED)
+message(STATUS "Found assimp")
+
 # Stores all variables in the LIBS variable
-SET(LIBS glfw glad OpenGL)
+SET(LIBS glfw glad OpenGL assimp)
 
 # Define the include DIRs
 include_directories(

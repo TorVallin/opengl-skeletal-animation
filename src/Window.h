@@ -13,6 +13,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "shader/Shader.h"
 #include "shapes/Grid.h"
+#include "models/ModelLoader.h"
+#include "renderer/Renderer.h"
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 static void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
@@ -79,6 +81,13 @@ class Window {
 
 	Grid grid{};
 
+	std::optional<Model> character_model_opt = ModelLoader::loadModel("../assets/Pushing.fbx");
+	if (!character_model_opt) {
+	  std::cerr << "Could not load character model, exiting";
+	  return;
+	}
+	auto character_model = *character_model_opt;
+
 	double delta_time = 0.0;
 	double last_frame = glfwGetTime();
 	while (!glfwWindowShouldClose(glfw_window)) {
@@ -90,6 +99,8 @@ class Window {
 
 	  // Render current frame
 	  grid.render();
+
+	  Renderer::render_model(character_model);
 
 	  glfwSwapBuffers(glfw_window);
 	  glfwPollEvents();
