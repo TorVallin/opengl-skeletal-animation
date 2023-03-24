@@ -11,6 +11,7 @@
 #include <unordered_map>
 
 static const int MAX_BONE_PER_VERTEX = 4;
+static const int MAX_BONES_PER_MODEL = 128;
 
 struct Vertex {
   glm::vec3 pos;
@@ -56,6 +57,13 @@ struct Mesh {
 
 class Model {
  public:
+  Model() {
+	skinning_matrices.reserve(MAX_BONES_PER_MODEL);
+	for (int i = 0; i < MAX_BONES_PER_MODEL; i++) {
+	  skinning_matrices.emplace_back(1.0f);
+	}
+  }
+
   std::vector<Mesh> mesh_list{};
 
   // Maps bone ids to their offset matrix (i.e. the matrix called mOffset in assimp).
@@ -63,6 +71,14 @@ class Model {
   std::unordered_map<int, glm::mat4> bone_offset_matrix{};
   std::unordered_map<std::string, int> bone_name_to_index{};
   int next_bone_id = 0;
+
+  // The matrices that transform vertex positions from their local space to their transformed and
+  // animated position
+  std::vector<glm::mat4> skinning_matrices{};
+
+  void compute_skinning_matrix() {
+
+  }
 };
 
 #endif //OPENGL_SKELETAL_ANIMATION_SRC_MODELS_MODEL_H_

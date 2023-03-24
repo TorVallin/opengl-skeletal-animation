@@ -104,8 +104,11 @@ class Window {
 	  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	  // Render current frame
+	  shader.use();
 	  grid.render();
 
+	  character_model.compute_skinning_matrix();
+	  skel_shader.use();
 	  Renderer::render_model(character_model);
 
 	  glfwSwapBuffers(glfw_window);

@@ -8,8 +8,10 @@
 #include <iostream>
 #include "models/Model.h"
 #include "glad/glad.h"
+#include "shader/Shader.h"
 class Renderer {
  public:
+
   static void render_model(const Model &model) {
 	for (const auto &mesh : model.mesh_list) {
 	  glBindVertexArray(mesh.vao);
