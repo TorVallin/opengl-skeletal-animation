@@ -14,13 +14,13 @@
 #include <assimp/cimport.h>
 #include <iostream>
 #include <optional>
+#include <stack>
 
 #include "Model.h"
 class ModelLoader {
  public:
 
-  [[nodiscard]] static std::optional<Model> loadModel(const std::string &path) {
-	Model model;
+  [[nodiscard]] static std::optional<Model> load_model(const std::string &path) {
 
 	aiPropertyStore *props = aiCreatePropertyStore();
 	aiSetImportPropertyInteger(props, "PP_PTV_NORMALIZE", 1);
@@ -37,40 +37,29 @@ class ModelLoader {
 	  return std::nullopt;
 	}
 
-	load_node(scene, scene->mRootNode, model);
-
-	return {model};
+	return {load_node(scene)};
   }
  private:
 
-  // TODO: rewrite this so that it is not recursive
-  static void load_node(const aiScene *scene, const aiNode *node, Model &model) {
-	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-	  model.mesh_list.push_back(load_mesh(scene, scene->mMeshes[node->mMeshes[i]]));
+  static Model load_node(const aiScene *scene) {
+	Model model{};
+	std::stack<aiNode *> nodes_to_process;
+	nodes_to_process.push(scene->mRootNode);
+
+	while (!nodes_to_process.empty()) {
+	  auto next_node = nodes_to_process.top();
+	  nodes_to_process.pop();
+
+	  for (unsigned int i = 0; i < next_node->mNumMeshes; i++) {
+		model.mesh_list.push_back(load_mesh(scene, scene->mMeshes[next_node->mMeshes[i]]));
+	  }
+
+	  for (unsigned int i = 0; i < next_node->mNumChildren; i++) {
+		nodes_to_process.push(next_node->mChildren[i]);
+	  }
 	}
 
-	for (unsigned int i = 0; i < node->mNumChildren; i++) {
-	  load_node(scene, node->mChildren[i], model);
-	}
-  }
-
-  static void create_mesh(Mesh &mesh) {
-	glGenVertexArrays(1, &mesh.vao);
-	glGenBuffers(1, &mesh.vbo);
-	glGenBuffers(1, &mesh.ebo);
-
-	glBindVertexArray(mesh.vao);
-	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-	glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(Vertex), &mesh.vertices[0], GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-				 mesh.indices.size() * sizeof(unsigned int),
-				 &mesh.indices[0],
-				 GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+	return model;
   }
 
   [[nodiscard]] static Mesh load_mesh(const aiScene *, const aiMesh *mesh) {
@@ -97,6 +86,25 @@ class ModelLoader {
 	create_mesh(result);
 
 	return result;
+  }
+
+  static void create_mesh(Mesh &mesh) {
+	glGenVertexArrays(1, &mesh.vao);
+	glGenBuffers(1, &mesh.vbo);
+	glGenBuffers(1, &mesh.ebo);
+
+	glBindVertexArray(mesh.vao);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+	glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(Vertex), &mesh.vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+				 mesh.indices.size() * sizeof(unsigned int),
+				 &mesh.indices[0],
+				 GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
   }
 
   [[nodiscard]] static std::string get_base_path(const std::string &path) {

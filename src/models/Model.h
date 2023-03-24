@@ -12,9 +12,11 @@
 static const int MAX_BONE_PER_VERTEX = 4;
 
 struct Vertex {
-  glm::vec3 pos;    // m_position
-//  glm::vec3 normal; // vertex normal
-//  glm::vec2 tex;    // 2D texture coordinates, these are given in obj files.
+  glm::vec3 pos;
+
+  // TODO: add these later
+  //  glm::vec3 normal; // vertex normal
+  //  glm::vec2 tex;    // 2D texture coordinates, these are given in obj files.
 };
 
 // TODO: add vertex weights as well

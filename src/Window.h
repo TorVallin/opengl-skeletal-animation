@@ -87,7 +87,7 @@ class Window {
 
 	Grid grid{};
 
-	std::optional<Model> character_model_opt = ModelLoader::loadModel("../assets/Pushing.fbx");
+	std::optional<Model> character_model_opt = ModelLoader::load_model("../assets/Pushing.fbx");
 	if (!character_model_opt) {
 	  std::cerr << "Could not load character model, exiting";
 	  return;
