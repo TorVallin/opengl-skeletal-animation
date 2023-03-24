@@ -13,7 +13,7 @@ class Renderer {
   static void render_model(const Model &model) {
 	for (const auto &mesh : model.mesh_list) {
 	  glBindVertexArray(mesh.vao);
-	  glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+	  glDrawElements(GL_TRIANGLES, (int)mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
 	}
   }
 };

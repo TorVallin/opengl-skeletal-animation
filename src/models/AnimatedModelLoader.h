@@ -17,7 +17,8 @@
 #include <stack>
 
 #include "Model.h"
-class ModelLoader {
+#include "Conversions.h"
+class AnimatedModelLoader {
  public:
 
   [[nodiscard]] static std::optional<Model> load_model(const std::string &path) {
@@ -51,7 +52,7 @@ class ModelLoader {
 	  nodes_to_process.pop();
 
 	  for (unsigned int i = 0; i < next_node->mNumMeshes; i++) {
-		model.mesh_list.push_back(load_mesh(scene, scene->mMeshes[next_node->mMeshes[i]]));
+		model.mesh_list.push_back(load_mesh(scene, scene->mMeshes[next_node->mMeshes[i]], model));
 	  }
 
 	  for (unsigned int i = 0; i < next_node->mNumChildren; i++) {
@@ -62,12 +63,12 @@ class ModelLoader {
 	return model;
   }
 
-  [[nodiscard]] static Mesh load_mesh(const aiScene *, const aiMesh *mesh) {
-	std::vector<Vertex> all_vertices;
+  [[nodiscard]] static Mesh load_mesh(const aiScene *, const aiMesh *mesh, Model &model) {
+	std::vector<AnimatedVertex> all_vertices;
 	std::vector<unsigned int> all_indices;
 
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-	  Vertex vert{};
+	  AnimatedVertex vert{};
 	  vert.pos = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 
 	  all_vertices.push_back(vert);
@@ -84,6 +85,7 @@ class ModelLoader {
 	result.indices = all_indices;
 
 	create_mesh(result);
+	load_bone_vertex_weights(mesh, result.vertices, model);
 
 	return result;
   }
@@ -95,7 +97,7 @@ class ModelLoader {
 
 	glBindVertexArray(mesh.vao);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-	glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(Vertex), &mesh.vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(AnimatedVertex), &mesh.vertices[0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
@@ -104,7 +106,36 @@ class ModelLoader {
 				 GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), nullptr);
+  }
+
+  static void load_bone_vertex_weights(const aiMesh *mesh, std::vector<AnimatedVertex> &vertices, Model &model) {
+	// NOTE: bone_index refers to a "relative index", that is, it is able to index into mesh->mBones.
+	// Which is NOT the same as bone_id, which is a globally unique id given to all bones.
+	for (int bone_index = 0; bone_index < (int)mesh->mNumBones; bone_index++) {
+	  int bone_id = -1;
+
+	  auto bone_name = mesh->mBones[bone_index]->mName.C_Str();
+	  auto absolute_index = model.bone_name_to_index.find(bone_name);
+	  if (absolute_index == model.bone_name_to_index.end()) {
+		// bone_index does not already exist in offset_matrix, so we create it
+		model.bone_offset_matrix[model.next_bone_id] =
+			Conversions::convertAssimpMat4ToGLM(mesh->mBones[bone_index]->mOffsetMatrix);
+		model.next_bone_id += 1;
+	  } else {
+		// Otherwise, the bone already exists in the map
+		bone_id = absolute_index->second;
+	  }
+
+	  // Configure the vertex data
+	  auto weights = mesh->mBones[bone_index]->mWeights;
+	  auto weight_count = mesh->mBones[bone_index]->mWeights;
+	  for (int weight_index = 0; weight_index < (int)mesh->mBones[bone_index]->mNumWeights; weight_index++) {
+		// vertex_id is the index of the vertex that is influenced by the bone with bone_id
+		auto vertex_id = weights[weight_index].mVertexId;
+		vertices[vertex_id].set_weight_to_first_unset(bone_id, weights[weight_index].mWeight);
+	  }
+	}
   }
 
   [[nodiscard]] static std::string get_base_path(const std::string &path) {

@@ -13,7 +13,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "shader/Shader.h"
 #include "shapes/Grid.h"
-#include "models/ModelLoader.h"
+#include "models/AnimatedModelLoader.h"
 #include "renderer/Renderer.h"
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -87,7 +87,7 @@ class Window {
 
 	Grid grid{};
 
-	std::optional<Model> character_model_opt = ModelLoader::load_model("../assets/Pushing.fbx");
+	std::optional<Model> character_model_opt = AnimatedModelLoader::load_model("../assets/Pushing.fbx");
 	if (!character_model_opt) {
 	  std::cerr << "Could not load character model, exiting";
 	  return;
