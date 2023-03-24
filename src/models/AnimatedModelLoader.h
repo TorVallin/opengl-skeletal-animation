@@ -15,6 +15,7 @@
 #include <iostream>
 #include <optional>
 #include <stack>
+#include <glm/glm.hpp>
 
 #include "Model.h"
 #include "Conversions.h"
@@ -29,16 +30,16 @@ class AnimatedModelLoader {
 	// Triangulates, generates normals
 	const aiScene *scene = (aiScene *)aiImportFileExWithProperties(path.c_str(),
 																   aiProcess_Triangulate
-																	   | aiProcess_PreTransformVertices
 																	   | aiProcess_ForceGenNormals
 																	   | aiProcess_GenSmoothNormals,
 																   nullptr, props);
+
 	if (!scene) {
 	  std::cerr << "Assimp failed to load: " << path << std::endl;
 	  return std::nullopt;
 	}
 
-	return {load_node(scene)};
+	return load_node(scene);
   }
  private:
 
@@ -63,7 +64,10 @@ class AnimatedModelLoader {
 	return model;
   }
 
-  [[nodiscard]] static Mesh load_mesh(const aiScene *, const aiMesh *mesh, Model &model) {
+  [[nodiscard]] static Mesh load_mesh(const aiScene *,
+									  const aiMesh *mesh,
+									  Model &model
+  ) {
 	std::vector<AnimatedVertex> all_vertices;
 	std::vector<unsigned int> all_indices;
 
@@ -88,25 +92,6 @@ class AnimatedModelLoader {
 	load_bone_vertex_weights(mesh, result.vertices, model);
 
 	return result;
-  }
-
-  static void create_mesh(Mesh &mesh) {
-	glGenVertexArrays(1, &mesh.vao);
-	glGenBuffers(1, &mesh.vbo);
-	glGenBuffers(1, &mesh.ebo);
-
-	glBindVertexArray(mesh.vao);
-	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-	glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(AnimatedVertex), &mesh.vertices[0], GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-				 mesh.indices.size() * sizeof(unsigned int),
-				 &mesh.indices[0],
-				 GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), nullptr);
   }
 
   static void load_bone_vertex_weights(const aiMesh *mesh, std::vector<AnimatedVertex> &vertices, Model &model) {
@@ -136,6 +121,25 @@ class AnimatedModelLoader {
 		vertices[vertex_id].set_weight_to_first_unset(bone_id, weights[weight_index].mWeight);
 	  }
 	}
+  }
+
+  static void create_mesh(Mesh &mesh) {
+	glGenVertexArrays(1, &mesh.vao);
+	glGenBuffers(1, &mesh.vbo);
+	glGenBuffers(1, &mesh.ebo);
+
+	glBindVertexArray(mesh.vao);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+	glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(AnimatedVertex), &mesh.vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+				 mesh.indices.size() * sizeof(unsigned int),
+				 &mesh.indices[0],
+				 GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), nullptr);
   }
 
   [[nodiscard]] static std::string get_base_path(const std::string &path) {
