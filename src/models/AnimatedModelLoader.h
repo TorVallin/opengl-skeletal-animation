@@ -49,11 +49,6 @@ class AnimatedModelLoader {
   }
  private:
 
-  struct NodeToProcess {
-	aiNode *to_process = nullptr;
-	int parent_index = -1;
-  };
-
   static void load_node(Model &model, const aiScene *scene, const aiNode *node, const int parent_index = -1) {
 	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
 	  // the node object only contains indices to index the actual objects in the scene.
@@ -113,6 +108,7 @@ class AnimatedModelLoader {
 	  auto bone_name = mesh->mBones[bone_index]->mName.C_Str();
 	  auto absolute_index = model.bone_name_to_index.find(bone_name);
 	  if (absolute_index == model.bone_name_to_index.end()) {
+		bone_id = model.next_bone_id;
 		// bone_index does not already exist in offset_matrix, so we create it
 		model.bone_offset_matrix[model.next_bone_id] =
 			Conversions::convertAssimpMat4ToGLM(mesh->mBones[bone_index]->mOffsetMatrix);
@@ -125,7 +121,6 @@ class AnimatedModelLoader {
 
 	  // Configure the vertex data
 	  auto weights = mesh->mBones[bone_index]->mWeights;
-	  auto weight_count = mesh->mBones[bone_index]->mWeights;
 	  for (int weight_index = 0; weight_index < (int)mesh->mBones[bone_index]->mNumWeights; weight_index++) {
 		// vertex_id is the index of the vertex that is influenced by the bone with bone_id
 		auto vertex_id = weights[weight_index].mVertexId;
