@@ -131,7 +131,7 @@ class Model {
   std::vector<Bone> bone_list{};
 
   // Maps bone ids to their offset matrix (i.e. the matrix called mOffset in assimp).
-  // mOffset transforms a bone from t
+  // mOffset is the bone's inverse bind pose matrix (it transforms the bone from bind pose back to bone space)
   std::unordered_map<int, glm::mat4> bone_offset_matrix{};
   std::unordered_map<std::string, int> bone_name_to_index{};
   int next_bone_id = 0;

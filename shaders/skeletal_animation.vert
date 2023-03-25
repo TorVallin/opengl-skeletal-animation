@@ -2,6 +2,7 @@
 
 layout (location = 0) in vec3 pos;
 layout (location = 1) in ivec4 boneIds;
+layout (location = 2) in vec4 boneWeights;
 
 const int MAX_BONES = 128;
 const int MAX_BONE_INFLUENCE = 4;
@@ -26,8 +27,7 @@ void main() {
         }
 
         vec4 localPosition = skinning_matrices[boneIds[i]] * vec4(pos, 1.0);
-        // TODO: use proper weights later, use uniform weights for now
-        totalPosition += localPosition * 0.25f;
+        totalPosition += localPosition * boneWeights[i];
     }
 
     gl_Position = projection * view * model * totalPosition;

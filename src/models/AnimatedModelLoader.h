@@ -169,6 +169,14 @@ class AnimatedModelLoader {
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), nullptr);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribIPointer(1, 4, GL_INT, sizeof(AnimatedVertex),
+						   (void *)offsetof(AnimatedVertex, bone_ids));
+
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex),
+						  (void *)offsetof(AnimatedVertex, bone_weights));
   }
 
   [[nodiscard]] static std::string get_base_path(const std::string &path) {
