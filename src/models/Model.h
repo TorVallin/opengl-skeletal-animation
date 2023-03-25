@@ -83,11 +83,19 @@ struct Bone {
   int bone_id = -1;
   std::string bone_name{};
   std::vector<QuatKeyFrame> rotation_keyframes{};
+  std::vector<Vec3KeyFrame> position_keyframes{};
   glm::mat4 local_transformation = glm::mat4{1.0f};
 
   Bone(int bone_id, aiNodeAnim *channel) {
 	this->bone_id = bone_id;
 	this->bone_name = channel->mNodeName.data;
+
+	// Convert all channel keyframes to our format
+
+	for (unsigned int pos_index = 0; pos_index < channel->mNumPositionKeys; pos_index++) {
+	  auto keyframe = channel->mPositionKeys[pos_index];
+	  position_keyframes.emplace_back(Conversions::convertAssimpVecToGLM(keyframe.mValue), keyframe.mTime);
+	}
 
 	for (unsigned int rot_index = 0; rot_index < channel->mNumRotationKeys; rot_index++) {
 	  auto keyframe = channel->mRotationKeys[rot_index];
@@ -97,12 +105,14 @@ struct Bone {
 
   // animation_timestamp is the current time of the animation,
   // it is NOT a delta time.
+  // TODO: only translations and rotations are handled at the moment
   void update_local_transformation(double animation_timestamp) {
-	// We only handle rotations for the moment
 	// TODO: find the correct keyframe later
+	auto current_pos = position_keyframes[0].vec;
 	auto current_rot = rotation_keyframes[0].quat;
 
 	local_transformation = glm::mat4(1.0f);
+	local_transformation = glm::translate(local_transformation, current_pos);
 	local_transformation *= glm::toMat4(current_rot);
   }
 };

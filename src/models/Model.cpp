@@ -23,9 +23,8 @@ void Model::update_skinning_matrix(double delta_time) {
 	auto local_transform = node.transformation;
 
 	if (bone) {
-	  // TODO: update bone
+	  // TODO: update bones properly
 	  bone->update_local_transformation(current_animation_time);
-	  // compute bone's local transform
 	  local_transform = bone->local_transformation;
 	}
 

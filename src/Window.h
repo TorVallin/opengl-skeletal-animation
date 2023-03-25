@@ -100,6 +100,8 @@ class Window {
 	  double current_frame = glfwGetTime();
 	  delta_time = current_frame - last_frame;
 
+	  character_model.update_skinning_matrix(delta_time);
+
 	  glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -107,9 +109,7 @@ class Window {
 	  shader.use();
 	  grid.render();
 
-	  character_model.update_skinning_matrix(delta_time);
 	  skel_shader.use();
-
 	  // transfer the skinning matrices to the GPU
 	  unsigned int i = 0;
 	  for (const auto &skinning_matrices : character_model.skinning_matrices) {

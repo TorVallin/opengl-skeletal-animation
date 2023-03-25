@@ -54,16 +54,23 @@ class AnimatedModelLoader {
 	int parent_index = -1;
   };
 
-  static void load_node(Model &model, const aiScene *scene, const aiNode *node, const bool load_animations = false) {
+  static void load_node(Model &model, const aiScene *scene, const aiNode *node, const int parent_index = -1) {
 	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
 	  // the node object only contains indices to index the actual objects in the scene.
 	  // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
 	  aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
 	  model.mesh_list.push_back(load_mesh(scene, mesh, model));
 	}
+
+	model.node_list.emplace_back(node->mName.data,
+								 Conversions::convertAssimpMat4ToGLM(node->mTransformation),
+								 parent_index);
+
+	// The current not is of course a parent to its children, meaning its ID will be the childrens' parent ID
+	auto this_node_id = (int)(model.node_list.size() - 1);
 	// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
 	for (unsigned int i = 0; i < node->mNumChildren; i++) {
-	  load_node(model, scene, node->mChildren[i]);
+	  load_node(model, scene, node->mChildren[i], this_node_id);
 	}
   }
 
