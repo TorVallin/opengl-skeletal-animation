@@ -25,11 +25,9 @@ struct Vertex {
   //  glm::vec2 tex;    // 2D texture coordinates, these are given in obj files.
 };
 
-// TODO: add vertex weights as well
-// 		bone_ids is the ID of the bones that affect this vertex's position
+// This means that bone_ids[i] impacts this vertex with weight bone_weights[i]
 struct AnimatedVertex {
   glm::vec3 pos{};
-  // This means that bone_ids[i] impacts this vertex with weight bone_weights[i]
   int bone_ids[MAX_BONE_PER_VERTEX]{};
   float bone_weights[MAX_BONE_PER_VERTEX]{};
 
@@ -82,8 +80,9 @@ struct QuatKeyFrame {
 struct Bone {
   int bone_id = -1;
   std::string bone_name{};
-  std::vector<QuatKeyFrame> rotation_keyframes{};
   std::vector<Vec3KeyFrame> position_keyframes{};
+  std::vector<Vec3KeyFrame> scale_keyframes{};
+  std::vector<QuatKeyFrame> rotation_keyframes{};
   glm::mat4 local_transformation = glm::mat4{1.0f};
 
   Bone(int bone_id, aiNodeAnim *channel) {
@@ -101,19 +100,24 @@ struct Bone {
 	  auto keyframe = channel->mRotationKeys[rot_index];
 	  rotation_keyframes.emplace_back(Conversions::convertAssimpQuatToGLM(keyframe.mValue), keyframe.mTime);
 	}
+
+	for (unsigned int scale_index = 0; scale_index < channel->mNumScalingKeys; scale_index++) {
+	  auto keyframe = channel->mScalingKeys[scale_index];
+	  scale_keyframes.emplace_back(Conversions::convertAssimpVecToGLM(keyframe.mValue), keyframe.mTime);
+	}
   }
 
   // animation_timestamp is the current time of the animation,
   // it is NOT a delta time.
-  // TODO: only translations and rotations are handled at the moment
   void update_local_transformation(double animation_timestamp) {
 	// TODO: find the correct keyframe later
 	auto current_pos = position_keyframes[0].vec;
 	auto current_rot = rotation_keyframes[0].quat;
+	auto current_scale = scale_keyframes[0].vec;
 
-	local_transformation = glm::mat4(1.0f);
-	local_transformation = glm::translate(local_transformation, current_pos);
+	local_transformation = glm::translate(glm::mat4(1.0f), current_pos);
 	local_transformation *= glm::toMat4(current_rot);
+	local_transformation = glm::scale(local_transformation, current_scale);
   }
 };
 

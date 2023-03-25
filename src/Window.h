@@ -69,7 +69,7 @@ class Window {
 
 	// Creates a basic camera
 	glm::mat4 model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
-	glm::mat4 view_matrix = glm::lookAt(glm::vec3(0.0f, 4.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), VEC_UP);
+	glm::mat4 view_matrix = glm::lookAt(glm::vec3(0.0f, 10.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f), VEC_UP);
 	glm::mat4
 		projection_matrix = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
@@ -110,6 +110,7 @@ class Window {
 	  grid.render();
 
 	  skel_shader.use();
+	  skel_shader.setMat4("model", glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f)));
 	  // transfer the skinning matrices to the GPU
 	  unsigned int i = 0;
 	  for (const auto &skinning_matrices : character_model.skinning_matrices) {

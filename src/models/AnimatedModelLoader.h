@@ -36,7 +36,7 @@ class AnimatedModelLoader {
 																   nullptr, props);
 
 	if (!scene || !scene->mRootNode) {
-	  std::cerr << "AnimatedModel::Error - Failed to load model " <<
+	  std::cerr << "AnimatedModelLoader::Error - Failed to load model " <<
 				importer.GetErrorString() << std::endl;
 	  return std::nullopt;
 	}
@@ -49,7 +49,7 @@ class AnimatedModelLoader {
   }
  private:
 
-  static void load_node(Model &model, const aiScene *scene, const aiNode *node, const int parent_index = -1) {
+  static void load_node(Model &model, const aiScene *scene, const aiNode *node, int parent_index = -1) {
 	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
 	  // the node object only contains indices to index the actual objects in the scene.
 	  // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
@@ -110,9 +110,9 @@ class AnimatedModelLoader {
 	  if (absolute_index == model.bone_name_to_index.end()) {
 		bone_id = model.next_bone_id;
 		// bone_index does not already exist in offset_matrix, so we create it
-		model.bone_offset_matrix[model.next_bone_id] =
+		model.bone_offset_matrix[bone_id] =
 			Conversions::convertAssimpMat4ToGLM(mesh->mBones[bone_index]->mOffsetMatrix);
-		model.bone_name_to_index[bone_name] = model.next_bone_id;
+		model.bone_name_to_index[bone_name] = bone_id;
 		model.next_bone_id += 1;
 	  } else {
 		// Otherwise, the bone already exists in the map
@@ -121,7 +121,7 @@ class AnimatedModelLoader {
 
 	  // Configure the vertex data
 	  auto weights = mesh->mBones[bone_index]->mWeights;
-	  for (int weight_index = 0; weight_index < (int)mesh->mBones[bone_index]->mNumWeights; weight_index++) {
+	  for (unsigned int weight_index = 0; weight_index < mesh->mBones[bone_index]->mNumWeights; weight_index++) {
 		// vertex_id is the index of the vertex that is influenced by the bone with bone_id
 		auto vertex_id = weights[weight_index].mVertexId;
 		vertices[vertex_id].set_weight_to_first_unset(bone_id, weights[weight_index].mWeight);
@@ -135,11 +135,9 @@ class AnimatedModelLoader {
   static void load_bones(Model &model, const aiAnimation *animation) {
 	for (unsigned int channel_index = 0; channel_index < animation->mNumChannels; channel_index++) {
 	  auto channel = animation->mChannels[channel_index];
-	  auto bone = model.bone_name_to_index.find(channel->mNodeName.data);
 
+	  auto bone = model.bone_name_to_index.find(channel->mNodeName.data);
 	  if (bone == model.bone_name_to_index.end()) {
-		model.bone_name_to_index[channel->mNodeName.data] = model.next_bone_id;
-		model.next_bone_id += 1;
 		assert("This should not happen, something is wrong with the bone parsing");
 	  }
 
