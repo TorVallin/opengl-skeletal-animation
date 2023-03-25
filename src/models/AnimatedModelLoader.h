@@ -23,58 +23,47 @@ class AnimatedModelLoader {
  public:
 
   [[nodiscard]] static std::optional<Model> load_model(const std::string &path) {
-
+	// Loading the model is split into 2 steps,
+	// 		1. Loads all meshes and vertices into the model object
+	//		2. Loads all animation data, bone information into the model object
+	Assimp::Importer importer;
 	aiPropertyStore *props = aiCreatePropertyStore();
 	aiSetImportPropertyInteger(props, "PP_PTV_NORMALIZE", 1);
-
-	// Triangulates, generates normals
 	const aiScene *scene = (aiScene *)aiImportFileExWithProperties(path.c_str(),
 																   aiProcess_Triangulate
-																	   | aiProcess_ForceGenNormals
-																	   | aiProcess_GenSmoothNormals,
+																	   | aiProcess_GenSmoothNormals
+																	   | aiProcess_ForceGenNormals,
 																   nullptr, props);
 
-	if (!scene) {
-	  std::cerr << "Assimp failed to load: " << path << std::endl;
-	  return std::nullopt;
+	if (!scene || !scene->mRootNode) {
+	  std::cerr << "AnimatedModel::Error - Failed to load model " <<
+				importer.GetErrorString() << std::endl;
 	}
 
-	return load_node(scene);
+	Model model{};
+	load_node(model, scene, scene->mRootNode);
+	load_bones(model, scene->mAnimations[0]);
+
+	return model;
   }
  private:
 
-  struct ToProcessEntry {
+  struct NodeToProcess {
 	aiNode *to_process = nullptr;
 	int parent_index = -1;
   };
 
-  static Model load_node(const aiScene *scene) {
-	Model model{};
-	std::stack<ToProcessEntry> nodes_to_process;
-	nodes_to_process.push({scene->mRootNode, -1});
-
-	while (!nodes_to_process.empty()) {
-	  const auto &next_node = nodes_to_process.top();
-	  nodes_to_process.pop();
-
-	  for (unsigned int i = 0; i < next_node.to_process->mNumMeshes; i++) {
-		model.mesh_list.push_back(load_mesh(scene, scene->mMeshes[next_node.to_process->mMeshes[i]], model));
-	  }
-
-	  model.node_list.emplace_back(next_node.to_process->mName.data,
-								   Conversions::convertAssimpMat4ToGLM(next_node.to_process->mTransformation),
-								   next_node.parent_index);
-
-	  // The current not is of course a parent to its children, meaning its ID will be the childrens' parent ID
-	  int this_node_id = model.node_list.size() - 1;
-	  for (unsigned int i = 0; i < next_node.to_process->mNumChildren; i++) {
-		nodes_to_process.push({next_node.to_process->mChildren[i], this_node_id});
-	  }
+  static void load_node(Model &model, const aiScene *scene, const aiNode *node, const bool load_animations = false) {
+	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+	  // the node object only contains indices to index the actual objects in the scene.
+	  // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
+	  aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
+	  model.mesh_list.push_back(load_mesh(scene, mesh, model));
 	}
-
-	load_bones(scene->mAnimations[0], model);
-
-	return model;
+	// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
+	for (unsigned int i = 0; i < node->mNumChildren; i++) {
+	  load_node(model, scene, node->mChildren[i]);
+	}
   }
 
   [[nodiscard]] static Mesh load_mesh(const aiScene *,
@@ -140,7 +129,7 @@ class AnimatedModelLoader {
   // The animation consists of an array of channels.
   // Each channel consists of keyframes, the channels also have a name that corresponds to the name of a node
   // in the scene.
-  static void load_bones(const aiAnimation *animation, Model &model) {
+  static void load_bones(Model &model, const aiAnimation *animation) {
 	for (unsigned int channel_index = 0; channel_index < animation->mNumChannels; channel_index++) {
 	  auto channel = animation->mChannels[channel_index];
 	  auto bone = model.bone_name_to_index.find(channel->mNodeName.data);
@@ -148,6 +137,7 @@ class AnimatedModelLoader {
 	  if (bone == model.bone_name_to_index.end()) {
 		model.bone_name_to_index[channel->mNodeName.data] = model.next_bone_id;
 		model.next_bone_id += 1;
+		assert("This should not happen, something is wrong with the bone parsing");
 	  }
 
 	  model.bone_list.emplace_back(model.bone_name_to_index[channel->mNodeName.data], channel);
