@@ -43,21 +43,32 @@ class AnimatedModelLoader {
   }
  private:
 
+  struct ToProcessEntry {
+	aiNode *to_process = nullptr;
+	int parent_index = -1;
+  };
+
   static Model load_node(const aiScene *scene) {
 	Model model{};
-	std::stack<aiNode *> nodes_to_process;
-	nodes_to_process.push(scene->mRootNode);
+	std::stack<ToProcessEntry> nodes_to_process;
+	nodes_to_process.push({scene->mRootNode, -1});
 
 	while (!nodes_to_process.empty()) {
-	  auto next_node = nodes_to_process.top();
+	  const auto &next_node = nodes_to_process.top();
 	  nodes_to_process.pop();
 
-	  for (unsigned int i = 0; i < next_node->mNumMeshes; i++) {
-		model.mesh_list.push_back(load_mesh(scene, scene->mMeshes[next_node->mMeshes[i]], model));
+	  for (unsigned int i = 0; i < next_node.to_process->mNumMeshes; i++) {
+		model.mesh_list.push_back(load_mesh(scene, scene->mMeshes[next_node.to_process->mMeshes[i]], model));
 	  }
 
-	  for (unsigned int i = 0; i < next_node->mNumChildren; i++) {
-		nodes_to_process.push(next_node->mChildren[i]);
+	  model.node_list.emplace_back(next_node.to_process->mName.data,
+								   Conversions::convertAssimpMat4ToGLM(next_node.to_process->mTransformation),
+								   next_node.parent_index);
+
+	  // The current not is of course a parent to its children, meaning its ID will be the childrens' parent ID
+	  int this_node_id = model.node_list.size() - 1;
+	  for (unsigned int i = 0; i < next_node.to_process->mNumChildren; i++) {
+		nodes_to_process.push({next_node.to_process->mChildren[i], this_node_id});
 	  }
 	}
 

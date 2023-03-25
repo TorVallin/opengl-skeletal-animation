@@ -55,6 +55,14 @@ struct Mesh {
   unsigned int vao, vbo, ebo;
 };
 
+struct Node {
+  std::string node_name;
+  glm::mat4 transformation;
+  int parent_index = -1;
+  Node(const std::string &node_name, const glm::mat4 &transformation, int parent_index)
+	  : node_name(node_name), transformation(transformation), parent_index(parent_index) {}
+};
+
 class Model {
  public:
   Model() {
@@ -65,6 +73,7 @@ class Model {
   }
 
   std::vector<Mesh> mesh_list{};
+  std::vector<Node> node_list{};
 
   // Maps bone ids to their offset matrix (i.e. the matrix called mOffset in assimp).
   // mOffset transforms a bone from t
@@ -73,7 +82,7 @@ class Model {
   int next_bone_id = 0;
 
   // The matrices that transform vertex positions from their local space to their transformed and
-  // animated position
+  // animated position. This gets copied to the GPU (vertex shader) to transform the vertices
   std::vector<glm::mat4> skinning_matrices{};
 
   void compute_skinning_matrix() {
