@@ -38,6 +38,7 @@ class AnimatedModelLoader {
 	if (!scene || !scene->mRootNode) {
 	  std::cerr << "AnimatedModel::Error - Failed to load model " <<
 				importer.GetErrorString() << std::endl;
+	  return std::nullopt;
 	}
 
 	Model model{};

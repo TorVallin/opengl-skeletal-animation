@@ -107,8 +107,15 @@ class Window {
 	  shader.use();
 	  grid.render();
 
-	  character_model.compute_skinning_matrix();
+	  character_model.update_skinning_matrix(delta_time);
 	  skel_shader.use();
+
+	  // transfer the skinning matrices to the GPU
+	  unsigned int i = 0;
+	  for (const auto &skinning_matrices : character_model.skinning_matrices) {
+		skel_shader.setMat4("skinning_matrices[" + std::to_string(i++) + "]", skinning_matrices);
+	  }
+
 	  Renderer::render_model(character_model);
 
 	  glfwSwapBuffers(glfw_window);

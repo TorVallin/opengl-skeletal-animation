@@ -5,6 +5,7 @@
 #ifndef OPENGL_SKELETAL_ANIMATION_SRC_MODELS_MODEL_H_
 #define OPENGL_SKELETAL_ANIMATION_SRC_MODELS_MODEL_H_
 
+#include <optional>
 #include <utility>
 #include <vector>
 #include <unordered_map>
@@ -80,15 +81,29 @@ struct QuatKeyFrame {
 
 struct Bone {
   int bone_id = -1;
+  std::string bone_name{};
   std::vector<QuatKeyFrame> rotation_keyframes{};
+  glm::mat4 local_transformation = glm::mat4{1.0f};
 
   Bone(int bone_id, aiNodeAnim *channel) {
 	this->bone_id = bone_id;
+	this->bone_name = channel->mNodeName.data;
 
 	for (unsigned int rot_index = 0; rot_index < channel->mNumRotationKeys; rot_index++) {
 	  auto keyframe = channel->mRotationKeys[rot_index];
 	  rotation_keyframes.emplace_back(Conversions::convertAssimpQuatToGLM(keyframe.mValue), keyframe.mTime);
 	}
+  }
+
+  // animation_timestamp is the current time of the animation,
+  // it is NOT a delta time.
+  void update_local_transformation(double animation_timestamp) {
+	// We only handle rotations for the moment
+	// TODO: find the correct keyframe later
+	auto current_rot = rotation_keyframes[0].quat;
+
+	local_transformation = glm::mat4(1.0f);
+	local_transformation *= glm::toMat4(current_rot);
   }
 };
 
@@ -110,14 +125,16 @@ class Model {
   std::unordered_map<int, glm::mat4> bone_offset_matrix{};
   std::unordered_map<std::string, int> bone_name_to_index{};
   int next_bone_id = 0;
+  double current_animation_time = 0.0;
 
   // The matrices that transform vertex positions from their local space to their transformed and
   // animated position. This gets copied to the GPU (vertex shader) to transform the vertices
   std::vector<glm::mat4> skinning_matrices{};
 
-  void compute_skinning_matrix() {
+  void update_skinning_matrix(double delta_time);
 
-  }
+ private:
+  std::optional<Bone> get_bone_by_name(const std::string &bone_name);
 };
 
 #endif //OPENGL_SKELETAL_ANIMATION_SRC_MODELS_MODEL_H_
