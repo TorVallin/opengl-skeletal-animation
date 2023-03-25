@@ -114,7 +114,8 @@ class Window {
 	  // transfer the skinning matrices to the GPU
 	  unsigned int i = 0;
 	  for (const auto &skinning_matrices : character_model.skinning_matrices) {
-		skel_shader.setMat4("skinning_matrices[" + std::to_string(i++) + "]", skinning_matrices);
+		skel_shader.setMat4("skinning_matrices[" + std::to_string(i) + "]", skinning_matrices);
+		i++;
 	  }
 
 	  Renderer::render_model(character_model);

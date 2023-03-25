@@ -17,6 +17,7 @@ class Renderer {
 	  glBindVertexArray(mesh.vao);
 	  glDrawElements(GL_TRIANGLES, (int)mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
 	}
+	glBindVertexArray(0);
   }
 };
 

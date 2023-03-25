@@ -9,9 +9,9 @@ const int MAX_BONE_INFLUENCE = 4;
 
 uniform mat4 skinning_matrices[MAX_BONES];
 
-uniform mat4 model;
-uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
 
 void main() {
     vec4 totalPosition = vec4(0.0f);

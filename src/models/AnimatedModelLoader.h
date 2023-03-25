@@ -51,8 +51,8 @@ class AnimatedModelLoader {
 
   static void load_node(Model &model, const aiScene *scene, const aiNode *node, int parent_index = -1) {
 	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-	  // the node object only contains indices to index the actual objects in the scene.
-	  // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
+	  // The node object only contains indices to index the actual objects in the scene.
+	  // The scene contains all the data, node is just to keep stuff organized (like relations between nodes).
 	  aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
 	  model.mesh_list.push_back(load_mesh(scene, mesh, model));
 	}
@@ -61,9 +61,10 @@ class AnimatedModelLoader {
 								 Conversions::convertAssimpMat4ToGLM(node->mTransformation),
 								 parent_index);
 
-	// The current not is of course a parent to its children, meaning its ID will be the childrens' parent ID
+	// The current node is of course a parent to its children, meaning its ID will be the childrens' parent ID
+	// in the next recursive call.
 	auto this_node_id = (int)(model.node_list.size() - 1);
-	// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
+	// After we've processed all of the meshes (if any) we then recursively process each of the children nodes
 	for (unsigned int i = 0; i < node->mNumChildren; i++) {
 	  load_node(model, scene, node->mChildren[i], this_node_id);
 	}
@@ -94,12 +95,12 @@ class AnimatedModelLoader {
 	result.indices = all_indices;
 
 	create_mesh(result);
-	load_bone_vertex_weights(mesh, result.vertices, model);
+	load_vertex_bone_weights(mesh, result.vertices, model);
 
 	return result;
   }
 
-  static void load_bone_vertex_weights(const aiMesh *mesh, std::vector<AnimatedVertex> &vertices, Model &model) {
+  static void load_vertex_bone_weights(const aiMesh *mesh, std::vector<AnimatedVertex> &vertices, Model &model) {
 	// NOTE: bone_index refers to a "relative index", that is, it is able to index into mesh->mBones.
 	// Which is NOT the same as bone_id, which is a globally unique id given to all bones.
 	for (int bone_index = 0; bone_index < (int)mesh->mNumBones; bone_index++) {
@@ -109,17 +110,17 @@ class AnimatedModelLoader {
 	  auto absolute_index = model.bone_name_to_index.find(bone_name);
 	  if (absolute_index == model.bone_name_to_index.end()) {
 		bone_id = model.next_bone_id;
-		// bone_index does not already exist in offset_matrix, so we create it
+		// bone_index does not already exist in offset_matrix, so we create it & insert it into the maps
 		model.bone_offset_matrix[bone_id] =
 			Conversions::convertAssimpMat4ToGLM(mesh->mBones[bone_index]->mOffsetMatrix);
 		model.bone_name_to_index[bone_name] = bone_id;
 		model.next_bone_id += 1;
 	  } else {
-		// Otherwise, the bone already exists in the map
+		// Otherwise, the bone already exists in the map so its ID is retrieved
 		bone_id = absolute_index->second;
 	  }
 
-	  // Configure the vertex data
+	  // Configure the vertex data (weights and which bones impact this vertex)
 	  auto weights = mesh->mBones[bone_index]->mWeights;
 	  for (unsigned int weight_index = 0; weight_index < mesh->mBones[bone_index]->mNumWeights; weight_index++) {
 		// vertex_id is the index of the vertex that is influenced by the bone with bone_id
@@ -161,7 +162,7 @@ class AnimatedModelLoader {
 				 GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), nullptr);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (void *)nullptr);
 
 	glEnableVertexAttribArray(1);
 	glVertexAttribIPointer(1, 4, GL_INT, sizeof(AnimatedVertex),
