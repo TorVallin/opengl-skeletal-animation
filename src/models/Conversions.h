@@ -8,6 +8,7 @@
 #include <glm/fwd.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <assimp/matrix4x4.h>
+#include <assimp/quaternion.h>
 class Conversions {
  public:
   static glm::mat4 convertAssimpMat4ToGLM(const aiMatrix4x4 &src) {
@@ -19,6 +20,18 @@ class Conversions {
 	};
 
 	return glm::make_mat4(results);
+  }
+
+  [[nodiscard]] static glm::vec3 convertAssimpVecToGLM(const aiVector3D &src) {
+	return glm::vec3{
+		src.x, src.y, src.z
+	};
+  }
+
+  [[nodiscard]] static glm::quat convertAssimpQuatToGLM(const aiQuaternion &src) {
+	return glm::quat{
+		src.w, src.x, src.y, src.z
+	};
   }
 };
 

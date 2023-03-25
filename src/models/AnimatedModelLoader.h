@@ -72,6 +72,8 @@ class AnimatedModelLoader {
 	  }
 	}
 
+	load_bones(scene->mAnimations[0], model);
+
 	return model;
   }
 
@@ -117,6 +119,7 @@ class AnimatedModelLoader {
 		// bone_index does not already exist in offset_matrix, so we create it
 		model.bone_offset_matrix[model.next_bone_id] =
 			Conversions::convertAssimpMat4ToGLM(mesh->mBones[bone_index]->mOffsetMatrix);
+		model.bone_name_to_index[bone_name] = model.next_bone_id;
 		model.next_bone_id += 1;
 	  } else {
 		// Otherwise, the bone already exists in the map
@@ -131,6 +134,23 @@ class AnimatedModelLoader {
 		auto vertex_id = weights[weight_index].mVertexId;
 		vertices[vertex_id].set_weight_to_first_unset(bone_id, weights[weight_index].mWeight);
 	  }
+	}
+  }
+
+  // The animation consists of an array of channels.
+  // Each channel consists of keyframes, the channels also have a name that corresponds to the name of a node
+  // in the scene.
+  static void load_bones(const aiAnimation *animation, Model &model) {
+	for (unsigned int channel_index = 0; channel_index < animation->mNumChannels; channel_index++) {
+	  auto channel = animation->mChannels[channel_index];
+	  auto bone = model.bone_name_to_index.find(channel->mNodeName.data);
+
+	  if (bone == model.bone_name_to_index.end()) {
+		model.bone_name_to_index[channel->mNodeName.data] = model.next_bone_id;
+		model.next_bone_id += 1;
+	  }
+
+	  model.bone_list.emplace_back(model.bone_name_to_index[channel->mNodeName.data], channel);
 	}
   }
 

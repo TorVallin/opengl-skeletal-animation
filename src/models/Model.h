@@ -5,10 +5,13 @@
 #ifndef OPENGL_SKELETAL_ANIMATION_SRC_MODELS_MODEL_H_
 #define OPENGL_SKELETAL_ANIMATION_SRC_MODELS_MODEL_H_
 
-#include <glm/glm.hpp>
-#include <glm/gtx/quaternion.hpp>
+#include <utility>
 #include <vector>
 #include <unordered_map>
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <assimp/scene.h>
+#include "Conversions.h"
 
 static const int MAX_BONE_PER_VERTEX = 4;
 static const int MAX_BONES_PER_MODEL = 128;
@@ -59,8 +62,34 @@ struct Node {
   std::string node_name;
   glm::mat4 transformation;
   int parent_index = -1;
-  Node(const std::string &node_name, const glm::mat4 &transformation, int parent_index)
-	  : node_name(node_name), transformation(transformation), parent_index(parent_index) {}
+  Node(std::string node_name, const glm::mat4 &transformation, int parent_index)
+	  : node_name(std::move(node_name)), transformation(transformation), parent_index(parent_index) {}
+};
+
+struct Vec3KeyFrame {
+  glm::vec3 vec;
+  double timestamp;
+  Vec3KeyFrame(const glm::vec3 &vec, double timestamp) : vec(vec), timestamp(timestamp) {}
+};
+
+struct QuatKeyFrame {
+  glm::quat quat;
+  double timestamp;
+  QuatKeyFrame(const glm::quat &quat, double timestamp) : quat(quat), timestamp(timestamp) {}
+};
+
+struct Bone {
+  int bone_id = -1;
+  std::vector<QuatKeyFrame> rotation_keyframes{};
+
+  Bone(int bone_id, aiNodeAnim *channel) {
+	this->bone_id = bone_id;
+
+	for (unsigned int rot_index = 0; rot_index < channel->mNumRotationKeys; rot_index++) {
+	  auto keyframe = channel->mRotationKeys[rot_index];
+	  rotation_keyframes.emplace_back(Conversions::convertAssimpQuatToGLM(keyframe.mValue), keyframe.mTime);
+	}
+  }
 };
 
 class Model {
@@ -74,6 +103,7 @@ class Model {
 
   std::vector<Mesh> mesh_list{};
   std::vector<Node> node_list{};
+  std::vector<Bone> bone_list{};
 
   // Maps bone ids to their offset matrix (i.e. the matrix called mOffset in assimp).
   // mOffset transforms a bone from t
