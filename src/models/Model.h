@@ -13,11 +13,13 @@
 #include <glm/gtx/quaternion.hpp>
 #include <assimp/scene.h>
 #include "Conversions.h"
+#include "models/animation/Bone.h"
 
 static const int MAX_BONE_PER_VERTEX = 4;
 static const int MAX_BONES_PER_MODEL = 128;
 
 // This means that bone_ids[i] impacts this vertex with weight bone_weights[i]
+// NOTE: bone_weights is not actually unused, it gets sent to the vertex shader buffers
 struct AnimatedVertex {
   glm::vec3 pos{};
   int bone_ids[MAX_BONE_PER_VERTEX]{};
@@ -57,67 +59,6 @@ struct Node {
 	  : node_name(std::move(node_name)), transformation(transformation), parent_index(parent_index) {}
 };
 
-struct Vec3KeyFrame {
-  glm::vec3 vec;
-  double timestamp;
-  Vec3KeyFrame(const glm::vec3 &vec, double timestamp) : vec(vec), timestamp(timestamp) {}
-};
-
-struct QuatKeyFrame {
-  glm::quat quat;
-  double timestamp;
-  QuatKeyFrame(const glm::quat &quat, double timestamp) : quat(quat), timestamp(timestamp) {}
-};
-
-struct Bone {
-  int bone_id = -1;
-  std::string bone_name{};
-  std::vector<Vec3KeyFrame> position_keyframes{};
-  std::vector<Vec3KeyFrame> scale_keyframes{};
-  std::vector<QuatKeyFrame> rotation_keyframes{};
-  glm::mat4 local_transformation = glm::mat4{1.0f};
-
-  Bone(int bone_id, aiNodeAnim *channel) {
-	this->bone_id = bone_id;
-	this->bone_name = channel->mNodeName.data;
-
-	// Convert all channel keyframes to our format
-
-	for (unsigned int pos_index = 0; pos_index < channel->mNumPositionKeys; pos_index++) {
-	  auto keyframe = channel->mPositionKeys[pos_index];
-	  position_keyframes.emplace_back(Conversions::convertAssimpVecToGLM(keyframe.mValue), keyframe.mTime);
-	}
-
-	for (unsigned int rot_index = 0; rot_index < channel->mNumRotationKeys; rot_index++) {
-	  auto keyframe = channel->mRotationKeys[rot_index];
-	  rotation_keyframes.emplace_back(Conversions::convertAssimpQuatToGLM(keyframe.mValue), keyframe.mTime);
-	}
-
-	for (unsigned int scale_index = 0; scale_index < channel->mNumScalingKeys; scale_index++) {
-	  auto keyframe = channel->mScalingKeys[scale_index];
-	  scale_keyframes.emplace_back(Conversions::convertAssimpVecToGLM(keyframe.mValue), keyframe.mTime);
-	}
-  }
-
-  // animation_timestamp is the current time of the animation,
-  // it is NOT a delta time.
-  void update_local_transformation(double animation_timestamp) {
-	// TODO: find the correct keyframe later
-	auto current_pos = position_keyframes[0].vec;
-	auto current_rot = rotation_keyframes[0].quat;
-	auto current_scale = scale_keyframes[0].vec;
-
-	local_transformation = glm::mat4(1.0f);
-	local_transformation = glm::translate(local_transformation, current_pos);
-	local_transformation *= glm::toMat4(current_rot);
-	local_transformation = glm::scale(local_transformation, current_scale);
-  }
-};
-
-struct BoneInfo {
-  int bone_id{};
-  glm::mat4 offset_matrix{};
-};
 
 class Model {
  public:
@@ -138,6 +79,8 @@ class Model {
   std::unordered_map<std::string, int> bone_name_to_index{};
   int next_bone_id = 0;
   double current_animation_time = 0.0;
+  double ticks_per_second = -1.0f;
+  double animation_duration = 0.0f;
 
   // The matrices that transform vertex positions from their local space to their transformed and
   // animated position. This gets copied to the GPU (vertex shader) to transform the vertices
@@ -147,6 +90,7 @@ class Model {
 
  private:
   std::optional<Bone> get_bone_by_name(const std::string &bone_name);
+  void update_time(double delta_time);
 };
 
 #endif //OPENGL_SKELETAL_ANIMATION_SRC_MODELS_MODEL_H_

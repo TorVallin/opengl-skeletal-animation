@@ -49,8 +49,11 @@ class AnimatedModelLoader {
 	load_node(model, model_scene, model_scene->mRootNode);
 
 	auto animation_scene = setup_scene(animation_path);
+	auto animation = animation_scene->mAnimations[1];
+	model.ticks_per_second = animation->mTicksPerSecond;
+	model.animation_duration = animation->mDuration;
 	load_node_animations(animation_scene, animation_scene->mRootNode, model, -1);
-	load_bones(model, animation_scene->mAnimations[0]);
+	load_bones(model, animation);
 
 	return model;
   }
