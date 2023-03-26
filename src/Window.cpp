@@ -16,7 +16,7 @@ void Window::run() {
 
   // Creates a basic camera
   glm::mat4 model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
-  glm::mat4 view_matrix = glm::lookAt(glm::vec3(0.0f, 10.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f), VEC_UP);
+  glm::mat4 view_matrix = glm::lookAt(glm::vec3(0.0f, 5.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), VEC_UP);
   glm::mat4
 	  projection_matrix = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
@@ -43,7 +43,7 @@ void Window::run() {
 	return;
   }
   unsigned int texture_id;
-  auto res = load_texture("../assets/skin.png", texture_id);
+  auto res = TextureLoader::load_texture("../assets/skin.png", texture_id);
   assert(res);
   auto character_model = *character_model_opt;
 

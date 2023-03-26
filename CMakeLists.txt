@@ -11,7 +11,7 @@ SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_P
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 # Define the executable
-add_executable(${PROJECT_NAME} src/main.cpp src/Window.cpp src/Window.h src/shader/Shader.cpp src/shader/Shader.h src/shapes/Grid.h src/models/Model.h src/models/AnimatedModelLoader.h src/models/Mesh.h src/renderer/Renderer.cpp src/renderer/Renderer.h src/models/Conversions.cpp src/models/Conversions.h src/models/Model.cpp src/models/animation/Bone.cpp src/models/animation/Bone.h src/models/AnimatedModelLoader.cpp src/models/TextureLoader.h)
+add_executable(${PROJECT_NAME} src/main.cpp src/Window.cpp src/Window.h src/shader/Shader.cpp src/shader/Shader.h src/shapes/Grid.h src/models/Model.h src/models/AnimatedModelLoader.h src/models/Mesh.h src/renderer/Renderer.cpp src/renderer/Renderer.h src/models/Conversions.cpp src/models/Conversions.h src/models/Model.cpp src/models/animation/Bone.cpp src/models/animation/Bone.h src/models/AnimatedModelLoader.cpp src/models/TextureLoader.h src/models/TextureLoader.cpp)
 
 find_package(OpenGL REQUIRED)
 
