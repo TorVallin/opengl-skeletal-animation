@@ -6,15 +6,6 @@
 #include <iostream>
 #include "Model.h"
 
-std::optional<Bone> Model::get_bone_by_name(const std::string &bone_name) {
-  for (auto &bone : bone_list) {
-	if (bone.bone_name == bone_name) {
-	  return bone;
-	}
-  }
-  return std::nullopt;
-}
-
 Model::Model() {
   skinning_matrices.reserve(MAX_BONES_PER_MODEL);
   for (int i = 0; i < MAX_BONES_PER_MODEL; i++) {
@@ -27,12 +18,12 @@ void Model::update_skinning_matrix(double delta_time) {
   std::vector<glm::mat4> parentTransforms;
 
   for (const auto &nodeData : node_list) {
-	auto bone = get_bone_by_name(nodeData.node_name);
-
 	auto nodeTransform = nodeData.transformation;
-	if (bone) {
-	  bone->update_local_transformation(current_time);
-	  nodeTransform = bone->local_transformation;
+
+	if (nodeData.bone_index >= 0) {
+	  auto &bone = bone_list[nodeData.bone_index];
+	  bone.update_local_transformation(current_time);
+	  nodeTransform = bone.local_transformation;
 	}
 
 	glm::mat4
@@ -40,9 +31,10 @@ void Model::update_skinning_matrix(double delta_time) {
 	glm::mat4 globalTransformation = parentTransform * nodeTransform;
 	parentTransforms.push_back(globalTransformation);
 
-	if (bone) {
-	  glm::mat4 offset = bone_offset_matrix[bone->bone_id];
-	  skinning_matrices[bone->bone_id] = globalTransformation * offset;
+	if (nodeData.bone_index >= 0) {
+	  auto &bone = bone_list[nodeData.bone_index];
+	  glm::mat4 offset = bone_offset_matrix[bone.bone_id];
+	  skinning_matrices[bone.bone_id] = globalTransformation * offset;
 	}
   }
 }
@@ -56,4 +48,16 @@ double Model::update_time(double delta_time) {
 
   current_animation_time = std::fmod(current_animation_time, animation_duration);
   return current_animation_time;
+}
+
+std::optional<std::pair<Bone, int>> Model::get_bone_by_name(const std::string &bone_name) const {
+  int i = 0;
+  for (const auto &bone : bone_list) {
+	if (bone.bone_name == bone_name) {
+	  return std::make_pair(bone, i);
+	}
+	i++;
+  }
+
+  return std::nullopt;
 }

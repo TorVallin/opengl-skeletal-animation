@@ -55,6 +55,10 @@ struct Mesh {
 struct Node {
   std::string node_name{};
   glm::mat4 transformation;
+
+  // A bone_index < 0 indicates that this node is not a bone
+  // A bone_index >= 0 implies that it is a bone, and the index can be used as an index into the bone_list.
+  int bone_index = -1;
   int parent_index = -1;
   Node(std::string node_name, const glm::mat4 &transformation, int parent_index)
 	  : node_name(std::move(node_name)), transformation(transformation), parent_index(parent_index) {}
@@ -85,8 +89,21 @@ class Model {
 
   void update_skinning_matrix(double delta_time);
 
+  void precompute_node_bone_indices() {
+	for (auto &nodeData : node_list) {
+	  auto bone = get_bone_by_name(nodeData.node_name);
+	  if (bone) {
+		nodeData.bone_index = bone->second;
+	  }
+	}
+  }
+
  private:
-  std::optional<Bone> get_bone_by_name(const std::string &bone_name);
+
+  // Loops through all bones in the bone list for a bone with the given bone_name.
+  //		If such a bone exists, the bone along with its index into the bone list is returned.
+  //		Otherwise, if such a bone does not exist, nullopt is returned.
+  [[nodiscard]]  std::optional<std::pair<Bone, int>> get_bone_by_name(const std::string &bone_name) const;
   double update_time(double delta_time);
 };
 

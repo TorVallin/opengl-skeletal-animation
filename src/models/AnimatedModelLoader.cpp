@@ -35,6 +35,8 @@ std::optional<Model> AnimatedModelLoader::load_model(const std::string &model_pa
   load_node_animations(animation_scene, animation_scene->mRootNode, model, -1);
   load_bones(model, animation);
 
+  model.precompute_node_bone_indices();
+
   return model;
 }
 
