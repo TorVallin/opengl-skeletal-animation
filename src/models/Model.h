@@ -52,22 +52,16 @@ struct Mesh {
 };
 
 struct Node {
-  std::string node_name;
+  std::string node_name{};
   glm::mat4 transformation;
   int parent_index = -1;
   Node(std::string node_name, const glm::mat4 &transformation, int parent_index)
 	  : node_name(std::move(node_name)), transformation(transformation), parent_index(parent_index) {}
 };
 
-
 class Model {
  public:
-  Model() {
-	skinning_matrices.reserve(MAX_BONES_PER_MODEL);
-	for (int i = 0; i < MAX_BONES_PER_MODEL; i++) {
-	  skinning_matrices.emplace_back(1.0f);
-	}
-  }
+  Model();
 
   std::vector<Mesh> mesh_list{};
   std::vector<Node> node_list{};
@@ -76,7 +70,7 @@ class Model {
   // Maps bone ids to their offset matrix (i.e. the matrix called mOffset in assimp).
   // mOffset is the bone's inverse bind pose matrix (it transforms the bone from bind pose back to bone space)
   std::vector<glm::mat4> bone_offset_matrix{};
-  std::unordered_map<std::string, int> bone_name_to_index{};
+  std::unordered_map<std::string, int> bone_name_to_index{}; // just used during initial parsing (for convenience)
   int next_bone_id = 0;
   double current_animation_time = 0.0;
   double ticks_per_second = -1.0f;
@@ -87,7 +81,7 @@ class Model {
   std::vector<glm::mat4> skinning_matrices{};
 
   void update_skinning_matrix(double delta_time);
-
+  
  private:
   std::optional<Bone> get_bone_by_name(const std::string &bone_name);
   double update_time(double delta_time);

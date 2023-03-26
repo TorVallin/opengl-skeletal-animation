@@ -55,6 +55,7 @@ void AnimatedModelLoader::load_node_animations(const aiScene *scene,
 											   const aiNode *node,
 											   Model &model,
 											   int parent_index) {
+  int this_node_index = (int)(model.node_list.size());
   model.node_list.emplace_back(node->mName.data,
 							   Conversions::convertAssimpMat4ToGLM(node->mTransformation),
 							   parent_index);
@@ -62,7 +63,6 @@ void AnimatedModelLoader::load_node_animations(const aiScene *scene,
   // The current node is of course a parent to its children, meaning its ID will be the childrens' parent ID
   // in the next recursive call.
   // After we've processed all of the meshes (if any) we then recursively process each of the children nodes
-  int this_node_index = (int)(model.node_list.size() - 1);
   for (unsigned int i = 0; i < node->mNumChildren; i++) {
 	load_node_animations(scene, node->mChildren[i], model, this_node_index);
   }
