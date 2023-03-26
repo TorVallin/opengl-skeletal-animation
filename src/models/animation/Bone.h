@@ -56,15 +56,53 @@ class Bone {
   // animation_timestamp is the current time of the animation,
   // it is NOT a delta time.
   void update_local_transformation(double animation_timestamp) {
-	// TODO: find the correct keyframe later
-	auto current_pos = position_keyframes[0].vec;
-	auto current_rot = rotation_keyframes[0].quat;
-	auto current_scale = scale_keyframes[0].vec;
+	auto current_pos = interpolate_vec3(position_keyframes, animation_timestamp);
+	auto current_rot = interpolate_quat(rotation_keyframes, animation_timestamp);
+	auto current_scale = interpolate_vec3(scale_keyframes, animation_timestamp);
 
 	local_transformation = glm::mat4(1.0f);
 	local_transformation = glm::translate(local_transformation, current_pos);
 	local_transformation *= glm::toMat4(current_rot);
 	local_transformation = glm::scale(local_transformation, current_scale);
+  }
+
+ private:
+  [[nodiscard]] static glm::vec3 interpolate_vec3(const std::vector<Vec3KeyFrame> &keyframes, double timestamp) {
+	// If the size is 1, there is nothing to interpolate between
+	if (keyframes.size() == 1) {
+	  return keyframes[0].vec;
+	}
+
+	unsigned int i = 0;
+	for (i = 0; i < keyframes.size() - 1; i++) {
+	  if (keyframes[i + 1].timestamp > timestamp) {
+		break;
+	  }
+	}
+
+	auto mix = compute_mix(keyframes[i].timestamp, keyframes[i + 1].timestamp, timestamp);
+	return glm::mix(keyframes[i].vec, keyframes[i + 1].vec, mix);
+  }
+
+  [[nodiscard]] static glm::quat interpolate_quat(const std::vector<QuatKeyFrame> &keyframes, double timestamp) {
+	// If the size is 1, there is nothing to interpolate between
+	if (keyframes.size() == 1) {
+	  return keyframes[0].quat;
+	}
+
+	unsigned int i = 0;
+	for (i = 0; i < keyframes.size() - 1; i++) {
+	  if (keyframes[i + 1].timestamp > timestamp) {
+		break;
+	  }
+	}
+
+	auto mix = (float)compute_mix(keyframes[i].timestamp, keyframes[i + 1].timestamp, timestamp);
+	return glm::normalize(glm::slerp(keyframes[i].quat, keyframes[i + 1].quat, mix));
+  }
+
+  [[nodiscard]] static double compute_mix(double timestamp1, double timestamp2, double current_time) {
+	return (current_time - timestamp1) / (timestamp2 - timestamp1);
   }
 };
 

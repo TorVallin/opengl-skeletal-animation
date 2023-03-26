@@ -16,7 +16,7 @@ std::optional<Bone> Model::get_bone_by_name(const std::string &bone_name) {
 }
 
 void Model::update_skinning_matrix(double delta_time) {
-  update_time(delta_time);
+  auto current_time = update_time(delta_time);
   std::vector<glm::mat4> parentTransforms;
 
   for (const auto &nodeData : node_list) {
@@ -25,7 +25,7 @@ void Model::update_skinning_matrix(double delta_time) {
 	auto bone = get_bone_by_name(nodeData.node_name);
 
 	if (bone) {
-	  bone->update_local_transformation(delta_time);
+	  bone->update_local_transformation(current_time);
 	  nodeTransform = bone->local_transformation;
 	}
 
@@ -41,7 +41,8 @@ void Model::update_skinning_matrix(double delta_time) {
 	}
   }
 }
-void Model::update_time(double delta_time) {
+
+double Model::update_time(double delta_time) {
   if (ticks_per_second > 0.0f) {
 	current_animation_time += delta_time * ticks_per_second;
   } else {
@@ -49,4 +50,5 @@ void Model::update_time(double delta_time) {
   }
 
   current_animation_time = std::fmod(current_animation_time, animation_duration);
+  return current_animation_time;
 }

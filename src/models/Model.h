@@ -90,7 +90,7 @@ class Model {
 
  private:
   std::optional<Bone> get_bone_by_name(const std::string &bone_name);
-  void update_time(double delta_time);
+  double update_time(double delta_time);
 };
 
 #endif //OPENGL_SKELETAL_ANIMATION_SRC_MODELS_MODEL_H_
