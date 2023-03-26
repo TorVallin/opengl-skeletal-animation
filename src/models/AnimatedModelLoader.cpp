@@ -4,6 +4,24 @@
 
 #include "AnimatedModelLoader.h"
 
+static const aiScene *setup_scene(const std::string &path) {
+  Assimp::Importer importer;
+  aiPropertyStore *props = aiCreatePropertyStore();
+  aiSetImportPropertyInteger(props, "PP_PTV_NORMALIZE", 1);
+  const aiScene *scene = (aiScene *)aiImportFileExWithProperties(path.c_str(),
+																 aiProcess_Triangulate
+																	 | aiProcess_GenSmoothNormals
+																	 | aiProcess_ForceGenNormals,
+																 nullptr, props);
+
+  if (!scene || !scene->mRootNode) {
+	std::cerr << "AnimatedModel::Error - Failed to load model " <<
+			  importer.GetErrorString() << std::endl;
+	return nullptr;
+  }
+  return scene;
+}
+
 std::optional<Model> AnimatedModelLoader::load_model(const std::string &model_path, const std::string &animation_path) {
   auto model_scene = setup_scene(model_path);
 
