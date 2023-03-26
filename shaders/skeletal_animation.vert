@@ -1,8 +1,9 @@
 #version 450 core
 
 layout (location = 0) in vec3 pos;
-layout (location = 1) in ivec4 boneIds;
-layout (location = 2) in vec4 boneWeights;
+layout (location = 1) in vec2 tex;
+layout (location = 2) in ivec4 boneIds;
+layout (location = 3) in vec4 boneWeights;
 
 const int MAX_BONES = 128;
 const int MAX_BONE_INFLUENCE = 4;
@@ -11,6 +12,8 @@ uniform mat4 skinning_matrices[MAX_BONES];
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
+
+out vec2 TexCoords;
 
 void main() {
     vec4 totalPosition = vec4(0.0f);
@@ -28,6 +31,7 @@ void main() {
     }
 
     gl_Position = projection * view * model * totalPosition;
+    TexCoords = tex;
 }
 
 

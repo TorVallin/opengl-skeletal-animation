@@ -75,6 +75,11 @@ Mesh AnimatedModelLoader::load_mesh(const aiScene *, const aiMesh *mesh, Model &
   for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
 	AnimatedVertex vert{};
 	vert.pos = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+
+	if (mesh->mTextureCoords[0]) {
+	  vert.tex_coords = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+	}
+
 	all_vertices.push_back(vert);
   }
 
@@ -162,14 +167,18 @@ void AnimatedModelLoader::create_mesh(Mesh &mesh) {
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), nullptr);
 
-  // Bone IDs that affect this vertex
   glEnableVertexAttribArray(1);
-  glVertexAttribIPointer(1, 4, GL_INT, sizeof(AnimatedVertex),
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex),
+						(void *)offsetof(AnimatedVertex, tex_coords));
+
+  // Bone IDs that affect this vertex
+  glEnableVertexAttribArray(2);
+  glVertexAttribIPointer(2, 4, GL_INT, sizeof(AnimatedVertex),
 						 (void *)offsetof(AnimatedVertex, bone_ids));
 
   // Bone weights that affect this vertex
-  glEnableVertexAttribArray(2);
-  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex),
+  glEnableVertexAttribArray(3);
+  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex),
 						(void *)offsetof(AnimatedVertex, bone_weights));
 
   glBindVertexArray(0);

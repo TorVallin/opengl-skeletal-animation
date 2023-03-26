@@ -3,6 +3,7 @@
 //
 
 #include "Window.h"
+#include "models/TextureLoader.h"
 
 void Window::run() {
   GLFWwindow *glfw_window = this->init_glfw();
@@ -25,7 +26,7 @@ void Window::run() {
   shader.setMat4("view", view_matrix);
   shader.setMat4("model", model_matrix);
 
-  Shader skel_shader = Shader("../shaders/skeletal_animation.vert", "../shaders/basic.frag");
+  Shader skel_shader = Shader("../shaders/skeletal_animation.vert", "../shaders/textured.frag.glsl");
   skel_shader.use();
   glm::mat4 animation_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
   animation_model_matrix = glm::scale(animation_model_matrix, glm::vec3(0.01f, 0.01f, 0.01f));
@@ -41,6 +42,9 @@ void Window::run() {
 	std::cerr << "Could not load character model, exiting";
 	return;
   }
+  unsigned int texture_id;
+  auto res = load_texture("../assets/skin.png", texture_id);
+  assert(res);
   auto character_model = *character_model_opt;
 
   double delta_time;

@@ -22,6 +22,7 @@ static const int MAX_BONES_PER_MODEL = 128;
 // NOTE: bone_weights is not actually unused, it gets sent to the vertex shader buffers
 struct AnimatedVertex {
   glm::vec3 pos{};
+  glm::vec2 tex_coords{};
   int bone_ids[MAX_BONE_PER_VERTEX]{};
   float bone_weights[MAX_BONE_PER_VERTEX]{};
 
@@ -63,6 +64,8 @@ class Model {
  public:
   Model();
 
+  std::optional<unsigned int> texture_id = std::nullopt;
+
   std::vector<Mesh> mesh_list{};
   std::vector<Node> node_list{};
   std::vector<Bone> bone_list{};
@@ -81,7 +84,7 @@ class Model {
   std::vector<glm::mat4> skinning_matrices{};
 
   void update_skinning_matrix(double delta_time);
-  
+
  private:
   std::optional<Bone> get_bone_by_name(const std::string &bone_name);
   double update_time(double delta_time);
