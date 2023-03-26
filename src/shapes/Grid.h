@@ -16,6 +16,11 @@ class Grid {
 	setup_buffers();
   }
 
+  ~Grid() {
+	glDeleteVertexArrays(1, &m_VAO);
+	glDeleteBuffers(1, &m_VBO);
+  }
+
   void render() const {
 	glBindVertexArray(m_VAO);
 	glDrawArrays(GL_LINES, 0, (int) m_vertex_count);
