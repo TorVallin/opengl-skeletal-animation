@@ -16,29 +16,29 @@ std::optional<Bone> Model::get_bone_by_name(const std::string &bone_name) {
 }
 
 void Model::update_skinning_matrix(double delta_time) {
-  current_animation_time += delta_time;
-  std::vector<glm::mat4> parent_transforms{};
+  // TODO: remember to loop the animation by wrapping the current_animation_time
+  std::vector<glm::mat4> parentTransforms;
 
-  for (const auto &node : node_list) {
-	auto bone = get_bone_by_name(node.node_name);
-	auto local_transform = node.transformation;
+  for (auto &nodeData : node_list) {
+	std::string nodeName = nodeData.node_name;
+	glm::mat4 nodeTransform = nodeData.transformation;
 
-	// Some nodes in node_list are not bones, but "dummy nodes" that are used to create the node hierarchy
+	auto bone = get_bone_by_name(nodeName);
+
 	if (bone) {
-	  // TODO: update bones properly
-	  bone->update_local_transformation(current_animation_time);
-	  local_transform = bone->local_transformation;
+	  bone->update_local_transformation(delta_time);
+	  nodeTransform = bone->local_transformation;
 	}
 
-	glm::mat4 parent_transform = node.parent_index != -1 ? parent_transforms[node.parent_index] : glm::mat4(1.0f);
-	glm::mat4 global_transform = parent_transform * local_transform;
-	parent_transforms.emplace_back(global_transform);
+	glm::mat4
+		parentTransform = nodeData.parent_index != -1 ? parentTransforms[nodeData.parent_index] : glm::mat4(1.0f);
+	glm::mat4 globalTransformation = parentTransform * nodeTransform;
+	parentTransforms.push_back(globalTransformation);
 
-	// This is the step that computes the actual skinning matrix.
 	if (bone) {
-	  int index = bone_name_to_index[bone->bone_name];
-	  glm::mat4 bone_inverse_bind_pose = bone_offset_matrix[index];
-	  skinning_matrices[index] = global_transform * bone_inverse_bind_pose;
+	  int index = bone_name_to_index[nodeName];
+	  glm::mat4 offset = bone_offset_matrix[index];
+	  skinning_matrices[index] = globalTransformation * offset;
 	}
   }
 }

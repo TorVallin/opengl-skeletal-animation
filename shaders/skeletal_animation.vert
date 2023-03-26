@@ -8,7 +8,6 @@ const int MAX_BONES = 128;
 const int MAX_BONE_INFLUENCE = 4;
 
 uniform mat4 skinning_matrices[MAX_BONES];
-
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
@@ -20,18 +19,15 @@ void main() {
         if (boneIds[i] == -1) {
             continue;
         }
-
         if (boneIds[i] >= MAX_BONES) {
             totalPosition = vec4(pos, 1.0);
             break;
         }
-
         vec4 localPosition = skinning_matrices[boneIds[i]] * vec4(pos, 1.0);
         totalPosition += localPosition * boneWeights[i];
     }
 
     gl_Position = projection * view * model * totalPosition;
-
-    //        gl_Position = projection*view*model * vec4(pos, 1.0);
 }
+
 

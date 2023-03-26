@@ -76,29 +76,33 @@ class Window {
 	Shader shader = Shader("../shaders/basic.vert", "../shaders/basic.frag");
 	shader.use();
 	shader.setMat4("projection", projection_matrix);
-	shader.setMat4("model", model_matrix);
 	shader.setMat4("view", view_matrix);
+	shader.setMat4("model", model_matrix);
 
 	Shader skel_shader = Shader("../shaders/skeletal_animation.vert", "../shaders/basic.frag");
 	skel_shader.use();
+	glm::mat4 animation_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
+	animation_model_matrix = glm::scale(animation_model_matrix, glm::vec3(0.01f, 0.01f, 0.01f));
 	skel_shader.setMat4("projection", projection_matrix);
-	skel_shader.setMat4("model", model_matrix);
 	skel_shader.setMat4("view", view_matrix);
+	skel_shader.setMat4("model", animation_model_matrix);
 
 	Grid grid{};
 
-	std::optional<Model> character_model_opt = AnimatedModelLoader::load_model("../assets/Pushing.fbx");
+	std::optional<Model>
+		character_model_opt = AnimatedModelLoader::load_model("../assets/character.fbx", "../assets/run.fbx");
 	if (!character_model_opt) {
 	  std::cerr << "Could not load character model, exiting";
 	  return;
 	}
 	auto character_model = *character_model_opt;
 
-	double delta_time = 0.0;
+	double delta_time;
 	double last_frame = glfwGetTime();
 	while (!glfwWindowShouldClose(glfw_window)) {
 	  double current_frame = glfwGetTime();
 	  delta_time = current_frame - last_frame;
+	  last_frame = current_frame;
 
 	  character_model.update_skinning_matrix(delta_time);
 
@@ -110,12 +114,11 @@ class Window {
 	  grid.render();
 
 	  skel_shader.use();
-	  skel_shader.setMat4("model", glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f)));
 	  // transfer the skinning matrices to the GPU
-	  unsigned int i = 0;
-	  for (const auto &skinning_matrices : character_model.skinning_matrices) {
-		skel_shader.setMat4("skinning_matrices[" + std::to_string(i) + "]", skinning_matrices);
-		i++;
+	  const auto transforms = character_model.skinning_matrices;
+	  for (unsigned int i = 0; i < transforms.size(); i++) {
+		skel_shader.setMat4("skinning_matrices[" + std::to_string(i) + "]",
+							transforms[i]);
 	  }
 
 	  Renderer::render_model(character_model);

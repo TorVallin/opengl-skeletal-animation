@@ -17,14 +17,6 @@
 static const int MAX_BONE_PER_VERTEX = 4;
 static const int MAX_BONES_PER_MODEL = 128;
 
-struct Vertex {
-  glm::vec3 pos;
-
-  // TODO: add these later
-  //  glm::vec3 normal; // vertex normal
-  //  glm::vec2 tex;    // 2D texture coordinates, these are given in obj files.
-};
-
 // This means that bone_ids[i] impacts this vertex with weight bone_weights[i]
 struct AnimatedVertex {
   glm::vec3 pos{};
@@ -115,10 +107,16 @@ struct Bone {
 	auto current_rot = rotation_keyframes[0].quat;
 	auto current_scale = scale_keyframes[0].vec;
 
-	local_transformation = glm::translate(glm::mat4(1.0f), current_pos);
+	local_transformation = glm::mat4(1.0f);
+	local_transformation = glm::translate(local_transformation, current_pos);
 	local_transformation *= glm::toMat4(current_rot);
 	local_transformation = glm::scale(local_transformation, current_scale);
   }
+};
+
+struct BoneInfo {
+  int bone_id{};
+  glm::mat4 offset_matrix{};
 };
 
 class Model {
@@ -136,7 +134,7 @@ class Model {
 
   // Maps bone ids to their offset matrix (i.e. the matrix called mOffset in assimp).
   // mOffset is the bone's inverse bind pose matrix (it transforms the bone from bind pose back to bone space)
-  std::unordered_map<int, glm::mat4> bone_offset_matrix{};
+  std::vector<glm::mat4> bone_offset_matrix{};
   std::unordered_map<std::string, int> bone_name_to_index{};
   int next_bone_id = 0;
   double current_animation_time = 0.0;
