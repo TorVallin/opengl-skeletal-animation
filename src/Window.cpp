@@ -20,13 +20,13 @@ void Window::run() {
   glm::mat4
 	  projection_matrix = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-  Shader shader = Shader("../shaders/basic.vert", "../shaders/basic.frag");
+  Shader shader = Shader("../shaders/basic.vert.glsl", "../shaders/basic.frag.glsl");
   shader.use();
   shader.setMat4("projection", projection_matrix);
   shader.setMat4("view", view_matrix);
   shader.setMat4("model", model_matrix);
 
-  Shader skel_shader = Shader("../shaders/skeletal_animation.vert", "../shaders/textured.frag.glsl");
+  Shader skel_shader = Shader("../shaders/skeletal_animation.vert.glsl", "../shaders/textured.frag.glsl");
   skel_shader.use();
   glm::mat4 animation_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
   animation_model_matrix = glm::scale(animation_model_matrix, glm::vec3(0.01f, 0.01f, 0.01f));
@@ -49,6 +49,7 @@ void Window::run() {
 
   double delta_time;
   double last_frame = glfwGetTime();
+
   while (!glfwWindowShouldClose(glfw_window)) {
 	double current_frame = glfwGetTime();
 	delta_time = current_frame - last_frame;
