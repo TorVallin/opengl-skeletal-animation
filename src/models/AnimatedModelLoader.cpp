@@ -157,11 +157,14 @@ void AnimatedModelLoader::create_mesh(Mesh &mesh) {
 
   glBindVertexArray(mesh.vao);
   glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-  glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(AnimatedVertex), &mesh.vertices[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER,
+			   (long)(mesh.vertices.size() * sizeof(AnimatedVertex)),
+			   &mesh.vertices[0],
+			   GL_STATIC_DRAW);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			   mesh.indices.size() * sizeof(unsigned int),
+			   (long)(mesh.indices.size() * sizeof(unsigned int)),
 			   &mesh.indices[0],
 			   GL_STATIC_DRAW);
 
@@ -169,16 +172,17 @@ void AnimatedModelLoader::create_mesh(Mesh &mesh) {
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), nullptr);
 
+  // Texture coordinates
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex),
 						(void *)offsetof(AnimatedVertex, tex_coords));
 
-  // Bone IDs that affect this vertex
+  // Bone IDs that affect this mesh's vertices
   glEnableVertexAttribArray(2);
   glVertexAttribIPointer(2, 4, GL_INT, sizeof(AnimatedVertex),
 						 (void *)offsetof(AnimatedVertex, bone_ids));
 
-  // Bone weights that affect this vertex
+  // Bone weights that affect this mesh's vertices
   glEnableVertexAttribArray(3);
   glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex),
 						(void *)offsetof(AnimatedVertex, bone_weights));

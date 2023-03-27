@@ -26,18 +26,37 @@ class AnimatedModelLoader {
 													   const std::string &animation_path);
  private:
   static void load_node(Model &model, const aiScene *scene, const aiNode *node);
+
+  /**
+   * Populates the given model's node_list with the nodes found in the scene.
+   * @param scene contains the animation to load.
+   * @param node The node to traverse next (use the scene's root node).
+   * @param model
+   * @param parent_index
+   */
   static void load_node_animations(const aiScene *scene,
 								   const aiNode *node,
 								   Model &model,
 								   int parent_index);
 
+  /**
+   * Loads vertices properties (position, texture coordinates) from the assimp scene & generates a new mesh
+   * object.
+   * @param mesh
+   * @param model
+   * @return
+   */
   [[nodiscard]] static Mesh load_mesh(const aiScene *,
 									  const aiMesh *mesh,
 									  Model &model
   );
   static void load_vertex_bone_weights(const aiMesh *mesh, std::vector<AnimatedVertex> &vertices, Model &model);
+
   static void load_bones(Model &model, const aiAnimation *animation);
 
+  /**
+   * Initializes the OpenGL buffers & sends the mesh data to the GPU.
+   */
   static void create_mesh(Mesh &mesh);
 };
 

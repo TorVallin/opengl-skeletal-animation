@@ -9,37 +9,38 @@ void Window::run() {
   GLFWwindow *glfw_window = this->init_glfw();
 
   if (glfw_window == nullptr) {
-	std::cerr << "Could not create window, exiting" << std::endl;
+	std::cerr << "Could not create window, exiting\n";
+	return;
   }
 
   configure_opengl();
 
   // Creates a basic camera
-  glm::mat4 model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
-  glm::mat4 view_matrix = glm::lookAt(glm::vec3(0.0f, 5.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), VEC_UP);
+  glm::mat4 view_matrix = glm::lookAt(glm::vec3(3.0f, 6.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), VEC_UP);
   glm::mat4
 	  projection_matrix = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
+  // Setup the grid shader
   Shader shader = Shader("../shaders/basic.vert.glsl", "../shaders/basic.frag.glsl");
   shader.use();
   shader.setMat4("projection", projection_matrix);
   shader.setMat4("view", view_matrix);
-  shader.setMat4("model", model_matrix);
+  shader.setMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(0.0f)));
 
-  Shader skel_shader = Shader("../shaders/skeletal_animation.vert.glsl", "../shaders/textured.frag.glsl");
-  skel_shader.use();
+  Shader skeletal_animation_shader = Shader("../shaders/skeletal_animation.vert.glsl", "../shaders/textured.frag.glsl");
+  skeletal_animation_shader.use();
   glm::mat4 animation_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
   animation_model_matrix = glm::scale(animation_model_matrix, glm::vec3(0.01f, 0.01f, 0.01f));
-  skel_shader.setMat4("projection", projection_matrix);
-  skel_shader.setMat4("view", view_matrix);
-  skel_shader.setMat4("model", animation_model_matrix);
+  skeletal_animation_shader.setMat4("projection", projection_matrix);
+  skeletal_animation_shader.setMat4("view", view_matrix);
+  skeletal_animation_shader.setMat4("model", animation_model_matrix);
 
   Grid grid{};
 
   std::optional<Model>
 	  character_model_opt = AnimatedModelLoader::load_model("../assets/character.fbx", "../assets/run.fbx");
   if (!character_model_opt) {
-	std::cerr << "Could not load character model, exiting";
+	std::cerr << "Could not load character model, exiting\n";
 	return;
   }
   unsigned int texture_id;
@@ -60,16 +61,15 @@ void Window::run() {
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Render current frame
+	// --- Render current frame
 	shader.use();
 	grid.render();
 
-	skel_shader.use();
+	skeletal_animation_shader.use();
 	// transfer the skinning matrices to the GPU
 	const auto transforms = character_model.skinning_matrices;
 	for (unsigned int i = 0; i < transforms.size(); i++) {
-	  skel_shader.setMat4("skinning_matrices[" + std::to_string(i) + "]",
-						  transforms[i]);
+	  skeletal_animation_shader.setMat4("skinning_matrices[" + std::to_string(i) + "]", transforms[i]);
 	}
 
 	Renderer::render_model(character_model);
