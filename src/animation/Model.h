@@ -13,7 +13,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <assimp/scene.h>
 #include "Conversions.h"
-#include "models/animation/Bone.h"
+#include "Bone.h"
 
 static const int MAX_BONE_PER_VERTEX = 4;
 static const int MAX_BONES_PER_MODEL = 128;

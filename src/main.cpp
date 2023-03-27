@@ -3,9 +3,9 @@
 //
 
 #include <iostream>
-#include "Window.h"
+#include "Program.h"
 
 int main() {
-  Window window;
+  Program window;
   window.run();
 }

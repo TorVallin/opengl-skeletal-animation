@@ -2,8 +2,8 @@
 // Created by tor on 3/23/23.
 //
 
-#ifndef OPENGL_SKELETAL_ANIMATION_SRC_WINDOW_H_
-#define OPENGL_SKELETAL_ANIMATION_SRC_WINDOW_H_
+#ifndef OPENGL_SKELETAL_ANIMATION_SRC_PROGRAM_H_
+#define OPENGL_SKELETAL_ANIMATION_SRC_PROGRAM_H_
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -13,13 +13,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "shader/Shader.h"
 #include "shapes/Grid.h"
-#include "models/AnimatedModelLoader.h"
+#include "animation/AnimatedModelLoader.h"
 #include "renderer/Renderer.h"
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 static void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
 								   GLsizei length, const char *message, const void *userParam);
-class Window {
+class Program {
 
  public:
   [[nodiscard]] GLFWwindow *init_glfw() const;
@@ -107,4 +107,4 @@ static void APIENTRY glDebugOutput(GLenum source,
   std::cout << std::endl;
 }
 
-#endif //OPENGL_SKELETAL_ANIMATION_SRC_WINDOW_H_
+#endif //OPENGL_SKELETAL_ANIMATION_SRC_PROGRAM_H_

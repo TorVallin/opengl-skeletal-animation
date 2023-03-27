@@ -24,11 +24,14 @@ static const aiScene *setup_scene(const std::string &path) {
 
 std::optional<Model> AnimatedModelLoader::load_model(const std::string &model_path, const std::string &animation_path) {
   auto model_scene = setup_scene(model_path);
+  auto animation_scene = setup_scene(animation_path);
+  if (model_scene == nullptr || animation_scene == nullptr) {
+	return std::nullopt;
+  }
 
   Model model{};
   load_node(model, model_scene, model_scene->mRootNode);
 
-  auto animation_scene = setup_scene(animation_path);
   auto animation = animation_scene->mAnimations[1];
   model.ticks_per_second = animation->mTicksPerSecond;
   model.animation_duration = animation->mDuration;

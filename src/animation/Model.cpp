@@ -23,7 +23,7 @@ void Model::update_skinning_matrix(double delta_time) {
 	if (nodeData.bone_index >= 0) {
 	  auto &bone = bone_list[nodeData.bone_index];
 	  bone.update_local_transformation(current_time);
-	  nodeTransform = bone.local_transformation;
+	  nodeTransform = bone.get_local_transform();
 	}
 
 	glm::mat4
@@ -33,8 +33,8 @@ void Model::update_skinning_matrix(double delta_time) {
 
 	if (nodeData.bone_index >= 0) {
 	  auto &bone = bone_list[nodeData.bone_index];
-	  glm::mat4 offset = bone_offset_matrix[bone.bone_id];
-	  skinning_matrices[bone.bone_id] = globalTransformation * offset;
+	  glm::mat4 offset = bone_offset_matrix[bone.get_bone_id()];
+	  skinning_matrices[bone.get_bone_id()] = globalTransformation * offset;
 	}
   }
 }
@@ -53,7 +53,7 @@ double Model::update_time(double delta_time) {
 std::optional<std::pair<Bone, int>> Model::get_bone_by_name(const std::string &bone_name) const {
   int i = 0;
   for (const auto &bone : bone_list) {
-	if (bone.bone_name == bone_name) {
+	if (bone.get_bone_name() == bone_name) {
 	  return std::make_pair(bone, i);
 	}
 	i++;

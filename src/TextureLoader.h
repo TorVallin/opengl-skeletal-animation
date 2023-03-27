@@ -6,7 +6,7 @@
 #define OPENGL_SKELETAL_ANIMATION_SRC_MODELS_TEXTURELOADER_H_
 
 
-#include <glad/glad.h>
+#include "glad/glad.h"
 #include <string>
 #include <iostream>
 

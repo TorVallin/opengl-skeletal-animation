@@ -6,7 +6,7 @@
 #define OPENGL_SKELETAL_ANIMATION_SRC_RENDERER_RENDERER_H_
 
 #include <iostream>
-#include "models/Model.h"
+#include "animation/Model.h"
 #include "glad/glad.h"
 #include "shader/Shader.h"
 

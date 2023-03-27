@@ -2,10 +2,10 @@
 // Created by tor on 3/23/23.
 //
 
-#include "Window.h"
-#include "models/TextureLoader.h"
+#include "Program.h"
+#include "TextureLoader.h"
 
-void Window::run() {
+void Program::run() {
   GLFWwindow *glfw_window = this->init_glfw();
 
   if (glfw_window == nullptr) {
@@ -58,10 +58,10 @@ void Window::run() {
 
 	character_model.update_skinning_matrix(delta_time);
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	// --- Render current frame
+	glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// --- Render current frame
 	shader.use();
 	grid.render();
 
@@ -79,7 +79,7 @@ void Window::run() {
   }
 }
 
-GLFWwindow *Window::init_glfw() const {
+GLFWwindow *Program::init_glfw() const {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
