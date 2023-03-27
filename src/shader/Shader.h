@@ -23,21 +23,21 @@
 
 class Shader {
  public:
-  unsigned int shaderID;
+  unsigned int shaderID{};
 
-  Shader();
   ~Shader() {
 	cleanup();
   }
 
-  void cleanup() {
+  void cleanup() const {
 	glDeleteProgram(shaderID);
   }
 
   /**
-   * @brief Creats a new shader object with the given shader files.
+   * @brief Creates a new shader object with the given shader files.
    * @param vertexPath Path to the vertex shader.
    * @param fragmentPath Path to the fragment shader.
+   * @throws Runtime error if either the vertex shader or the fragment shader could not be found.
   */
   Shader(const char *vertexPath, const char *fragmentPath);
 

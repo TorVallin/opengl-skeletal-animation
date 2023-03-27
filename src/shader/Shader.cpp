@@ -15,12 +15,6 @@
  */
 
 /**
- * @brief Default Constructor
- */
-Shader::Shader() {
-}
-
-/**
  * @brief Creats a new shader object with the given shader files.
  * @param vertexPath Path to the vertex shader.
  * @param fragmentPath Path to the fragment shader.
@@ -43,21 +37,27 @@ void Shader::loadShader(const std::string &vertexPath, const std::string &fragme
 
   std::string fragmentCode((std::istreambuf_iterator<char>(fragStream)),
 						   (std::istreambuf_iterator<char>()));
-  if (vertexCode.empty())
+
+  if (vertexCode.empty()) {
 	std::cerr << "Shader::loadShader - empty vertex shader\n";
-  if (fragmentCode.empty())
+	throw std::runtime_error("Empty vertex shader");
+  }
+  if (fragmentCode.empty()) {
 	std::cerr << "Shader::loadShader - empty fragment shader\n";
+	throw std::runtime_error("Empty fragment shader");
+  }
+
   const char *vCode = vertexCode.c_str();
   const char *fCode = fragmentCode.c_str();
   unsigned int vertexID, fragmentID;
 
   vertexID = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexID, 1, &vCode, NULL);
+  glShaderSource(vertexID, 1, &vCode, nullptr);
   glCompileShader(vertexID);
   checkCompileErrors(vertexID, "VERTEX");
 
   fragmentID = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentID, 1, &fCode, NULL);
+  glShaderSource(fragmentID, 1, &fCode, nullptr);
   glCompileShader(fragmentID);
   checkCompileErrors(fragmentID, "FRAGMENT");
 
