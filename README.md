@@ -1,9 +1,9 @@
 # OpenGL Skeletal Animation
 
-This project showcases an implementation skeletal animation in OpenGL, using C++17.
+This project showcases an implementation of skeletal animation in OpenGL, using C++17.
 ![run_animation.gif](media/run_animation.gif)
 
-The implementation is quite rudimentary at the moment, as it only supports keyframe interpolation. It can essentially be seen as a minimum working example (MWE) for skeletal animation.
+The implementation is quite rudimentary at the moment, as it only supports keyframe interpolation. It can essentially be seen as a minimum working example (MWE) for skeletal animation. The code was written to be simple without any fluff.
 
 ## Upcoming Features 
 
